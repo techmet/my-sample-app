@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { Idle, DocumentInterruptSource } from '@ng-idle/core';
+import { Idle, DEFAULT_INTERRUPTSOURCES, AutoResume } from '@ng-idle/core';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 
 @Component({
@@ -15,28 +15,28 @@ export class AppComponent {
 
   constructor(private idle: Idle) {
     // sets an idle timeout of 5 seconds, for testing purposes.
-    idle.setIdle(40);
+    idle.setIdle(30);
     // sets a timeout period of 5 seconds. after 10 seconds of inactivity, the user will be considered timed out.
-    idle.setTimeout(20);
-
+    idle.setTimeout(30);
     // sets the default interrupts, in this case, things like clicks, scrolls, touches to the document
-    idle.setInterrupts([new DocumentInterruptSource(
-      'mousedown'),
-    ]);
+    idle.setInterrupts(DEFAULT_INTERRUPTSOURCES);
+
+    idle.setAutoResume(AutoResume.notIdle);
 
     idle.onIdleEnd.subscribe(() => {
-      console.log('idleEnd: ' + Date());
-      // write logic to logout or removal of cookie
-      // this.staticModal.show();
+      console.log('onIdleEnd: '+Date());
     });
+
+
     idle.onTimeout.subscribe(() => {
-      console.log('on Timeout: ' + Date());
+      console.log('onTimeout: ' + Date());
+
       this.idleState = 'Timed out!';
       this.timedOut = true;
       this.staticModal.hide();
     });
     idle.onIdleStart.subscribe(() => {
-      console.log('idle Start: ' + Date());
+      console.log('onIdleStart: ' + Date());
 
       this.staticModal.show();
       this.idleState = 'You\'ve gone idle!';
@@ -47,8 +47,15 @@ export class AppComponent {
     this.reset();
 
   }
+  resetView() {
+    this.staticModal.hide();
+    this.reset();
+  }
+
   reset() {
+
     console.log('reset: ' + Date());
+
     this.idle.watch();
     this.idleState = 'Started.';
     this.timedOut = false;
